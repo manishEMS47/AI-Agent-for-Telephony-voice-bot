@@ -1,177 +1,243 @@
-# 🤖 Voice Bot
+# AI Agent for Telephony - Voice Bot
 
-Voice Bot Server is an opinionated version of Vocode Telephony Server with FastAPI - Deepgram, OpenAI, and ElevenLabs are used here to achieve a realistic sounding agent. This project enables you to build and deploy conversational AI agents that can handle inbound and outbound phone calls for various use cases such as information collection, appointment scheduling, sales, customer support, and more.
+A production-ready conversational AI telephony system built on Vocode, integrating Deepgram, OpenAI, and ElevenLabs to deliver natural voice interactions for inbound and outbound phone calls.
 
-## 🌟 Overview
+## Overview
 
-Voice Bot leverages the power of Vocode to support using AI agents with inbound and outbound phone calls. Users can create their own custom agents and integrate them seamlessly into their telephony systems.
+This AI-powered telephony solution enables businesses to deploy intelligent voice agents for various use cases including customer support, appointment scheduling, lead qualification, and information collection. The system provides seamless integration with existing telephony infrastructure through Twilio's robust platform.
 
-## 📋 Requirements
+### Key Features
 
-- 🐳 [Docker](https://www.docker.com/) (required for running the project)
+- **Real-time Voice Processing**: Advanced speech-to-text and text-to-speech capabilities
+- **Intelligent Conversation Management**: OpenAI-powered natural language understanding
+- **Scalable Architecture**: Docker-based deployment with Kubernetes support
+- **Comprehensive Monitoring**: Built-in Prometheus metrics and observability
+- **Flexible Configuration**: Customizable agents, transcribers, and synthesizers
 
-API keys for:
-   - 🎙️ Deepgram (for speech transcription)
-   - 🧠 OpenAI (for the underlying agent)
-   - 🗣️ ElevenLabs (for speech synthesis)
-   - 📞 Twilio (for telephony)
+## Architecture
 
-The project uses the following components, which are automatically set up through Docker:
+The system leverages the following technology stack:
 
-- 🎬 [ffmpeg](https://ffmpeg.org/) (for audio processing)
-- 🗄️ [Redis](https://redis.io/) (for data storage and caching)
-- 📊 [Prometheus](https://prometheus.io/) (for metrics collection)
+- **Voice Processing**: Deepgram for speech transcription, ElevenLabs for synthesis
+- **AI Engine**: OpenAI for conversational intelligence
+- **Telephony**: Twilio for call management and routing
+- **Infrastructure**: FastAPI, Redis, Docker, Kubernetes
+- **Monitoring**: Prometheus metrics collection
 
-These dependencies are defined in the `docker-compose.yml` file and will be pulled in automatically when you run the project.
+## Prerequisites
 
-For local testing and development:
+### Required Dependencies
+- Docker and Docker Compose
+- Python 3.8+ with Poetry (for development)
 
-- 🌐 [Ngrok](https://ngrok.com/) or [Cloudflare Tunnels](https://www.cloudflare.com/products/tunnel/) (optional, used to expose your local server to the internet for testing purposes)
+### API Keys Required
+- **Deepgram**: Speech transcription services
+- **OpenAI**: Language model and conversation management
+- **ElevenLabs**: Text-to-speech synthesis
+- **Twilio**: Telephony services and phone number management
 
-Note: Ngrok or Cloudflare Tunnels are not required for deployment but can be useful for local testing and development.
+### Development Tools (Optional)
+- Ngrok or Cloudflare Tunnels for local testing
+- Kubernetes cluster for production deployment
+- Helm 3.0+ for Kubernetes deployments
 
-## 📊 Metrics
+## Quick Start
 
-The Voice Bot now includes Prometheus metrics for monitoring session activity:
+### 1. Environment Configuration
 
-- `voicebot_session_count`: A counter that tracks the total number of sessions started.
-- `voicebot_active_sessions`: A gauge that shows the current number of active sessions.
+```bash
+cp .env.template .env
+```
 
-These metrics are exposed on port 8000 and can be scraped by a Prometheus server.
+Configure your `.env` file with the required API keys:
 
-## 🛠️ Environment Setup
+```env
+# Telephony Configuration
+BASE_URI=your-domain.com
+TWILIO_ACCOUNT_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_token
+FROM_PHONE=+1234567890
+TO_PHONE=+1234567890
 
-1. Copy the `.env.template` file and fill in the values of your API keys:
-   ```
-   cp .env.template .env
-   ```
+# AI Services
+DEEPGRAM_API_KEY=your_deepgram_key
+OPENAI_API_KEY=your_openai_key
+OPENAI_BASE_URL=https://api.openai.com/v1
+ELEVEN_LABS_API_KEY=your_eleven_labs_key
+ELEVEN_LABS_VOICE_ID=your_voice_id
+```
 
-2. Set up hosting so that Twilio can hit your server. An easy way to do this is ngrok or cloudflare:
-   ```
-   ngrok http 6000
-   ```
-   Copy the URI that is tunneling localhost:3000 to your `.env` without `https://`, e.g.:
-   ```
-   BASE_URI=asdf1234.ngrok.app
-   ```
+### 2. Local Development Setup
 
-## 📞 Telephony Server
+For local testing, expose your development server:
 
-The TelephonyServer is responsible for receiving and making phone calls. The server is built using FastAPI and utilizes Twilio for telephony services.
+```bash
+ngrok http 6000
+```
 
-### 🚀 Running the Server
+Update your `.env` with the ngrok URL (without `https://`):
+```env
+BASE_URI=abc123.ngrok.app
+```
 
-1. Build and run the application using docker-compose:
-   ```
-   docker-compose up --build
-   ```
+### 3. Start the Application
 
-## 📥 Setting up an Inbound Number
+```bash
+docker-compose up --build
+```
 
-1. Create a Twilio account
-2. In your Twilio dashboard, go to Phone Numbers -> Manage -> Buy a number to get a phone number
-3. Go to Phone Numbers -> Manage -> Active Numbers and select the number you want to set up
-4. Update the config to point the Webhook URL to `https://<BASE_URI>/inbound_call`
-5. Hit Save and call the number!
+The application will be available at `http://localhost:6000`
 
-## 📤 Executing Outbound Calls
+## Telephony Configuration
 
-1. Ensure the server is running
-2. Install Poetry and dependencies:
-   ```
-   poetry 
-3. Ensure .env has `TO_PHONE` set as the number you want to call and `FROM_PHONE` with your Twilio number.
-4. Run the script:
-   ```
-   poetry run python outbound_call.py
-   ```
+### Inbound Call Setup
 
-## ⚙️ Configuration
+1. **Acquire Phone Number**
+   - Log into your Twilio Console
+   - Navigate to Phone Numbers → Manage → Buy a number
+   - Purchase a phone number for your region
 
-Both the `OutboundCall` (in `outbound_call.py`) and `InboundCallConfig` (in `inbound.py`) classes can accept a `TranscriberConfig`, `AgentConfig`, or `SynthesizerConfig`. 
+2. **Configure Webhook**
+   - Go to Phone Numbers → Manage → Active Numbers
+   - Select your purchased number
+   - Set Webhook URL to: `https://your-domain.com/inbound_call`
+   - Set HTTP method to `POST`
+   - Save configuration
 
-### 🎙️ Transcriber
-The default transcriber is Deepgram
+### Outbound Call Execution
 
-### 🗣️ Synthesizer
-The default synthesizer is ElevenLabs
+Ensure your environment variables are configured, then execute:
 
-## 🚀 Deployment with Helm and Kubernetes
+```bash
+poetry install
+poetry run python outbound_call.py
+```
 
-### Prerequisites
+## Monitoring and Observability
 
-- Kubernetes cluster (e.g., Minikube, EKS, GKE, AKS)
+The system exposes Prometheus metrics on port 8000:
+
+- `voicebot_session_count`: Total number of sessions initiated
+- `voicebot_active_sessions`: Current active session count
+
+Access metrics at: `http://localhost:8000/metrics`
+
+## Production Deployment
+
+### Kubernetes with Helm
+
+#### Prerequisites
+- Kubernetes cluster (EKS, GKE, AKS, or self-managed)
 - Helm 3.0+
-- kubectl configured to communicate with your cluster
+- kubectl configured for your cluster
 
-### Deployment Steps
+#### Deployment Process
 
-1. Clone the repository and navigate to the project directory:
-   ```
-   git clone https://github.com/Agentic-Insights/voice-bot
-   cd voice-bot
-   ```
-
-2. Create a `my-values.yaml` file in the project root with your specific configuration:
-   ```yaml
-   env:
-     BASE_URI: "application-base-uri"
-     DEEPGRAM_API_KEY: "your-deepgram-key"
-     OPENAI_API_KEY: "your-openai-key"
-     OPENAI_BASE_URL: "your-openai-based-base-url"
-     ELEVEN_LABS_API_KEY: "your-eleven-labs-key"
-     ELEVEN_LABS_VOICE_ID: "your-eleven-labs-voice-id"
-     TWILIO_ACCOUNT_SID: "your-twilio-sid"
-     TWILIO_AUTH_TOKEN: "your-twilio-token"
-     FROM_PHONE: "your-from-phone"
-     TO_PHONE: "your-to-phone"
-   ```
-
-3. Install the Helm chart:
-   ```
-   helm install voice-bot ./kubernetes/voice-bot-helm/voice-bot -f my-values.yaml
-   ```
-
-4. Check the status of your deployment:
-   ```
-   kubectl get pods
-   kubectl get services
-   ```
-
-5. To access your application, set up port-forwarding:
-   ```
-   k8s-port-forward.bat
-   (TODO does not work) kubectl port-forward service/voice-bot 6000:3000 (/TODO)
-   ```
-   Your application should now be accessible at `http://localhost:6000`.
-
-### Updating the Deployment
-
-To update your deployment after making changes:
-
-```
-helm upgrade voice-bot ./kubernetes/voice-bot-helm/voice-bot -f my-values.yaml
+1. **Clone Repository**
+```bash
+git clone https://github.com/danieladdisonorg/AI-Agent-for-Telephony-voice-bot
+cd AI-Agent-for-Telephony-voice-bot
 ```
 
-### Uninstalling the Deployment
+2. **Create Configuration**
 
-To remove the Voice Bot Server from your cluster:
+Create `production-values.yaml`:
 
+```yaml
+env:
+  BASE_URI: "your-production-domain.com"
+  DEEPGRAM_API_KEY: "your-deepgram-key"
+  OPENAI_API_KEY: "your-openai-key"
+  OPENAI_BASE_URL: "https://api.openai.com/v1"
+  ELEVEN_LABS_API_KEY: "your-eleven-labs-key"
+  ELEVEN_LABS_VOICE_ID: "your-voice-id"
+  TWILIO_ACCOUNT_SID: "your-twilio-sid"
+  TWILIO_AUTH_TOKEN: "your-twilio-token"
+  FROM_PHONE: "your-twilio-number"
+  TO_PHONE: "your-target-number"
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+replicas: 3
 ```
+
+3. **Deploy Application**
+```bash
+helm install voice-bot ./kubernetes/voice-bot-helm/voice-bot -f production-values.yaml
+```
+
+4. **Verify Deployment**
+```bash
+kubectl get pods -l app=voice-bot
+kubectl get services voice-bot
+```
+
+#### Management Commands
+
+**Update Deployment:**
+```bash
+helm upgrade voice-bot ./kubernetes/voice-bot-helm/voice-bot -f production-values.yaml
+```
+
+**Remove Deployment:**
+```bash
 helm uninstall voice-bot
 ```
 
-### Troubleshooting
+**View Logs:**
+```bash
+kubectl logs -f deployment/voice-bot
+```
 
-- If you encounter issues, check the logs of your pods:
-  ```
-  kubectl logs deployment/voice-bot
-  ```
+## Configuration Options
 
-- For more detailed information about your deployment:
-  ```
-  kubectl describe deployment voice-bot
-  kubectl describe service voice-bot
-  ```
+### Agent Configuration
+Customize conversation behavior through `AgentConfig` parameters in your deployment configuration.
 
-Remember to update your Twilio webhook URL to point to your new Kubernetes-hosted Voice Bot Server.
+### Transcriber Options
+- **Default**: Deepgram (recommended for production)
+- **Alternative**: Configure custom transcription services
+
+### Synthesizer Options
+- **Default**: ElevenLabs (high-quality voice synthesis)
+- **Alternative**: Configure alternative TTS providers
+
+## Troubleshooting
+
+### Common Issues
+
+**Connection Problems:**
+- Verify all API keys are valid and have sufficient credits
+- Check network connectivity and firewall rules
+- Ensure webhook URLs are publicly accessible
+
+**Audio Quality Issues:**
+- Verify Deepgram and ElevenLabs configurations
+- Check network latency and bandwidth
+- Review audio codec settings
+
+**Deployment Issues:**
+```bash
+# Check pod status
+kubectl describe pod <pod-name>
+
+# View detailed logs
+kubectl logs <pod-name> --previous
+
+# Check service connectivity
+kubectl port-forward service/voice-bot 6000:3000
+```
+
+## Support and Contributing
+
+For issues, feature requests, or contributions, please visit the [GitHub repository](https://github.com/danieladdisonorg/AI-Agent-for-Telephony-voice-bot).
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
